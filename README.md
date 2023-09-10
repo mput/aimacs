@@ -11,4 +11,4 @@ The environment variable `GPT_API_KEY` is expected to have an OpenAI API key, or
 - [ ] Compatibility with Helm/Vertico/Etc. for Template Selection
 - [ ] Response Streaming
 
-![in action](./images/Screenshot 2023-09-11 at 00.37.05.png "in action")
+<img width="1452" alt="Screenshot 2023-09-11 at 00 37 05" src="https://github.com/mput/aimacs/assets/1230663/7f04c8ff-1591-48f9-8215-79831119436f">
