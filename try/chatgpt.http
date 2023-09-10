@@ -1,0 +1,58 @@
+## Try API and store usefull links
+
+## Store GPT_API_KEY=<key> in .env file
+:_ := (load-env-vars ".env")
+
+:GPT_API_KEY := (getenv "GPT_API_KEY")
+:BASE = https://api.openai.com/v1/chat/completions
+
+# models: https://platform.openai.com/docs/models
+# examples https://platform.openai.com/examples
+# reference for create completition https://platform.openai.com/docs/api-reference/chat/create
+# guide for completiiton api https://platform.openai.com/docs/guides/gpt/chat-completions-api
+
+# BASIC Request:
+POST :BASE
+-> jq-set-var :gpt-res-id .id
+-> jq-set-var :gpt-res .
+Content-Type: application/json
+Authorization: Bearer :GPT_API_KEY
+
+{
+    "model": "gpt-4",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You will be provided with statements, and your task is to convert them to standard English. Explain you corrections in separate section."
+      },
+      {
+        "role": "user",
+        "content": "I'm writing plugin for emacs which will allow to make some interractions with chat gpt!"
+      }
+    ]
+}
+
+
+
+
+# STREAM request:
+POST :BASE
+-> jq-set-var :gpt-res-id .id
+-> jq-set-var :gpt-res .
+Content-Type: application/json
+Authorization: Bearer :GPT_API_KEY
+
+{
+    "model": "gpt-4",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You will be provided with statements, and your task is to convert them to standard English. Explain you corrections in separate section."
+      },
+      {
+        "role": "user",
+        "content": "I'm writing plugin for emacs which will allow to make some interractions with chat gpt!"
+      }
+    ],
+    "stream": true
+}
