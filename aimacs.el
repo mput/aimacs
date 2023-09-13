@@ -41,25 +41,36 @@
 
 
 
-(defconst aimacs-oai-comp-api-base "https://api.openai.com/v1/chat/completions")
-(defconst aimacs-api-key (getenv "GPT_API_KEY"))
-
-
-(defvar aimacs-model "gpt-3.5-turbo")
+(setq aimacs-oai-comp-api-base "https://api.openai.com/v1/chat/completions")
+(setq aimacs-api-key (getenv "GPT_API_KEY"))
+(setq aimacs-model "gpt-3.5-turbo")
+(setq aimacs-model "gpt-4")
 
 (setq aimacs-templates
   '(((name . "markdown grammar correction")
-     (system . "You will be provided with statements, and your task is to convert them to standard English.
-Provide the result only in markdown format while trying to preserve the markup!
-Explain you corrections in markdown comment bellow corrected text, provide explanation step by step.")
+     (system . "You will be provided with text which is a part of software documentation, and your task is to proofread it.
+Provide the result in markdown format while trying to preserve the markup, first put the corrected version, and then place diff as markdown comment.
+")
      (user . "{{region}}")
      (result-mode . markdown-mode))
-    ((name . "refact clojure")
-     (system . "Here is current namespace with Clojure code:
-{{-buffer}}
-Refact the next function, explain you decisions.")
+
+    ((name . "clojure efficiency improvements")
+     (system . "You will be provided with a piece of Clojure code, and your task is to provide ideas for efficiency improvements.")
      (user . "{{region}}")
-     (result-mode . clojure-mode))))
+     (result-mode . clojure-mode))
+
+    ((name . "clojure bug haunt")
+     (system . "You will be provided with a piece of Clojure code, and your task is to find and fix bugs in it.")
+     (user . "{{region}}")
+     (result-mode . clojure-mode))
+
+    ((name . "parse unstructored data to EDN")
+     (system . "You will be provided with unstructured data, and your task is to parse it into EDN format.")
+     (user . "{{region}}"))
+
+    ((name . "code explainer")
+     (system . "You will be provided with a piece of code, and your task is to explain it in a concise way.")
+     (user . "{{region}}"))))
 
 
 (defun aimacs-replace-in-template (s s-region s-buffer)
