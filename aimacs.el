@@ -9,7 +9,7 @@
 ;; Version: 0.0.1
 ;; Keywords: chat gpt
 ;; Homepage: https://github.com/mput/aimacs
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "25.1"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -18,6 +18,8 @@
 ;;
 ;;
 ;;; Code:
+
+(require 'request)
 
 (defmacro aimacs-comment (&rest body)
   "Comment out one or more s-expressions."
@@ -83,7 +85,7 @@ Provide the result in markdown format while trying to preserve the markup, first
                         ("region" s-region)
                         ("buffer" s-buffer)
                         (_ ""))))
-        (replace-match replace)))
+        (replace-match replace nil "\\")))
     (buffer-substring (point-min) (point-max))))
 
 
@@ -101,13 +103,6 @@ Provide the result in markdown format while trying to preserve the markup, first
             rec)))
 
 
-
-(aimacs-comment
- (message "%s"(alist-get 'result-mode (aimacs-resolve-template "markdown grammar correction")))
-
- (aimacs-resolve-template "refact clojure")
- )
-
 (defun aimacs-query-and-show (t-name)
   (let* ((template (aimacs-resolve-template t-name))
          (messages (->> '(system user)
@@ -117,39 +112,32 @@ Provide the result in markdown format while trying to preserve the markup, first
                                       `((role . ,n)
                                         (content . , v))))))
                         (remq nil)))
-         (res-mode (alist-get 'result-mode template))
-         (url-request-method "POST")
-         (url-request-data  (json-encode `((model . ,aimacs-model)
-                                           (messages  . ,messages))))
-         (url-request-extra-headers `(("Content-Type" . "application/json")
-                                      ("Authorization" . ,(format "Bearer %s" aimacs-api-key)))))
-    (url-retrieve aimacs-oai-comp-api-base
-                  (lambda (status res-mode)
-                    (condition-case nil
-                        (let* ((jbody (progn
-                                        (goto-char url-http-end-of-headers)
-                                        (json-read)))
-                               (res (->> (aref (alist-get 'choices jbody) 0)
-                                         (alist-get 'message)
-                                         (alist-get 'content))))
-                          (aimacs-create-and-show-res (format "*aimacs-%s*" (random 1000)) res res-mode))
-                      (error
-                       (pop-to-buffer (current-buffer))))
-                    (message "Done."))
-                  (list res-mode))))
-
-
-;; (encode-coding-string "🚧 *dsd" 'utf-8)
-
+         (res-mode (alist-get 'result-mode template)))
+    (request aimacs-oai-comp-api-base
+      :type "POST"
+      :headers `(("Content-Type" . "application/json")
+                 ("Authorization" . ,(format "Bearer %s" aimacs-api-key)))
+      :data (json-encode `((model . ,aimacs-model)
+                           (messages  . ,messages)))
+      :parser 'json-read
+      :success (cl-function
+                (lambda (&key data &allow-other-keys)
+                  (let ((res (->> (aref (alist-get 'choices data) 0)
+                                  (alist-get 'message)
+                                  (alist-get 'content))))
+                    (aimacs-create-and-show-res (format "*aimacs-%s*" (random 1000)) res res-mode))))
+      :error (cl-function
+              (lambda (&rest args &key error-thrown &key response &allow-other-keys)
+                (aimacs-create-and-show-res
+                 (format "*aimacs-error-%s*" (random 1000))
+                 (format ":error %S\n:body %s"
+                         error-thrown
+                         (ignore-errors (json-encode (request-response-data response))))
+                 'json-mode))))))
 (defun aimacs-complete ()
   (interactive)
   (aimacs-query-and-show (completing-read "Specify Template: "
                                    (mapcar (lambda (v) (alist-get 'name v) ) aimacs-templates))))
-
-
-(aimacs-comment
- (aimacs-create-and-show-res "*aimacs*" "Body here!")
- (aimacs-query-and-show "I'm writing plugin for emacs which will allow to make some interractions with chat gpt!"))
 
 
 (provide 'aimacs)

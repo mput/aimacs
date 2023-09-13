@@ -7,7 +7,7 @@ This is a tool that **allows** interaction with the [OpenAI Chat Completion API]
 The environment variable `GPT_API_KEY` is expected to contain an OpenAI API key. Alternatively, a `.env` file should be provided with that variable.
 
 
-## Roadmap
+# Roadmap
 - [x] Proof of Concept
 - [x] Templates from Configuration
 - [x] Compatibility with Helm/Vertico/Etc. for Template Selection
